@@ -6,6 +6,8 @@
     <title>Coniuratio Catilinae - Escape Room Latino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,900&display=swap" rel="stylesheet">
     <style>
         body {
@@ -15,6 +17,7 @@
             background-image: radial-gradient(circle at center, #3f0a0a 0%, #140202 100%);
             min-height: 100vh;
             overflow-x: hidden;
+            transition: all 0.5s ease;
         }
         h1, h2, h3, .font-cinzel {
             font-family: 'Cinzel', serif;
@@ -73,7 +76,17 @@
         .word-token:hover { color: #8B322C; background: rgba(139, 50, 44, 0.1); border-bottom-color: #8B322C; }
         .drawer { transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; }
         .lang-tag { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 900; text-transform: uppercase; margin-right: 8px; display: inline-block; }
-        .bg-es { background: #fee2e2; color: #991b1b; }
+        
+        /* Animación Roma en Llamas */
+        @keyframes fire-alert {
+            0% { box-shadow: inset 0 0 0px rgba(220, 38, 38, 0); }
+            50% { box-shadow: inset 0 0 80px rgba(220, 38, 38, 0.8); }
+            100% { box-shadow: inset 0 0 0px rgba(220, 38, 38, 0); }
+        }
+        .danger-mode {
+            animation: fire-alert 1.5s infinite;
+            border: 4px solid rgba(220, 38, 38, 0.8);
+        }
     </style>
 </head>
 <body class="flex flex-col items-center p-4 md:p-8 relative">
@@ -95,7 +108,7 @@
 
     <header class="w-full max-w-5xl flex justify-between items-center border-b border-red-900/50 pb-4 mb-8 hidden-stage" id="gameHeader">
         <div class="text-xl md:text-2xl font-cinzel text-amber-500 tracking-widest">Senatus Populusque Romanus</div>
-        <div class="flex items-center gap-3 text-red-400 font-cinzel text-2xl font-bold bg-red-950 px-4 py-2 rounded-md shadow-lg border border-red-800">
+        <div class="flex items-center gap-3 text-red-400 font-cinzel text-2xl font-bold bg-red-950 px-4 py-2 rounded-md shadow-lg border border-red-800 transition-colors" id="timerContainer">
             <i data-lucide="clock" class="w-6 h-6"></i>
             <span id="timerDisplay">45:00</span>
         </div>
@@ -123,7 +136,7 @@
             <div class="mb-8 bg-red-950/40 p-6 rounded border border-red-900/50 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="text-left">
                     <p class="text-amber-500 font-cinzel text-md mb-1 flex items-center gap-2"><i data-lucide="key" class="w-4 h-4"></i> Oráculo (API Groq)</p>
-                    <p class="text-xs text-slate-400">Requerido para generar el reto magistral aleatorio (console.groq.com).</p>
+                    <p class="text-xs text-slate-400">Requerido para generar el reto magistral aleatorio.</p>
                 </div>
                 <button onclick="promptForKey()" class="px-4 py-2 bg-red-900 hover:bg-red-800 text-slate-200 text-xs font-cinzel rounded transition uppercase">Configurar Clavis</button>
             </div>
@@ -140,8 +153,7 @@
             <div class="pergamino p-6 md:p-8 rounded-lg relative">
                 <div class="absolute top-4 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-amber-900/20 rounded-full"></div>
                 <h2 class="text-2xl font-cinzel text-center border-b-2 border-amber-900/20 pb-4 mb-6 mt-2 font-bold uppercase text-red-900">Acta Senatus</h2>
-                <div id="latin-container" class="text-lg leading-loose text-justify font-medium">
-                    </div>
+                <div id="latin-container" class="text-lg leading-loose text-justify font-medium"></div>
                 <div class="mt-8 pt-4 border-t border-amber-900/20 text-sm italic text-amber-900/70">
                     <p class="mb-2 font-bold flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> Haz clic en cualquier palabra para consultar el Oráculo.</p>
                     <ul class="list-disc pl-5 space-y-1 mt-4">
@@ -259,7 +271,6 @@
                         <p class="text-sm text-slate-400 mb-3">Redactad aquí la versión final en español de todo el texto. Es requisito indispensable para emitir la condena.</p>
                         <textarea id="fullTranslation" class="w-full h-32 p-4 bg-black/50 border border-emerald-900/50 text-slate-200 rounded focus:border-emerald-500 focus:outline-none transition font-serif" placeholder="¿Hasta cuándo abusarás..."></textarea>
                     </div>
-
                 </div>
                 <div class="mt-6 text-right">
                     <button onclick="checkPrueba2()" class="px-6 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold font-cinzel rounded transition uppercase">Validar Condena</button>
@@ -314,7 +325,6 @@
         <p class="text-xl md:text-2xl text-slate-300 leading-relaxed max-w-2xl mb-4">
             Catilina ha huido de la ciudad gracias a vuestra rapidez. La República ha sobrevivido un día más gracias a vuestro dominio de la lengua de sus padres.
         </p>
-        
         <p class="mt-4 text-amber-500 font-cinzel font-bold text-xl uppercase tracking-widest bg-amber-950/50 p-4 rounded-lg border border-amber-900">Tu resultado ha sido registrado y no puede modificarse. Ya puedes cerrar esta pestaña.</p>
 
         <div class="bg-black/80 p-6 md:p-8 rounded-lg border border-amber-500/50 mt-4 w-full max-w-xl shadow-[0_0_30px_rgba(217,119,6,0.2)] relative">
@@ -322,11 +332,8 @@
                 <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="statusDot"></div>
                 <span class="text-[10px] text-slate-400 uppercase tracking-widest" id="statusText">Enviando email al Cónsul...</span>
             </div>
-
             <h3 class="text-2xl font-cinzel text-amber-500 mb-4 border-b border-amber-500/30 pb-3 uppercase tracking-widest mt-4">Acta de la República</h3>
-            
             <p class="text-slate-300 mb-6 text-lg">Senadores Recompensados: <span id="finalTeamName" class="text-amber-400 font-bold font-cinzel text-xl ml-2"></span></p>
-            
             <div class="grid grid-cols-2 gap-4 my-6 bg-red-950/30 p-4 rounded border border-red-900/50 shadow-inner">
                 <div class="flex flex-col items-center justify-center p-2">
                     <p class="text-xs text-slate-400 uppercase tracking-widest mb-1 text-center">Tiempo Sobrante</p>
@@ -337,15 +344,10 @@
                     <p id="finalMistakes" class="text-3xl text-red-400 font-bold font-cinzel"></p>
                 </div>
             </div>
-            
             <div class="bg-amber-900/40 p-6 rounded border border-amber-500/50 mb-4 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 opacity-10">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                </div>
                 <p class="text-sm text-amber-200 uppercase tracking-widest mb-2">Puntuación Final</p>
                 <p id="finalScore" class="text-5xl text-amber-400 font-bold font-cinzel drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"></p>
             </div>
-            
         </div>
     </div>
 
@@ -394,27 +396,75 @@
         </div>
     </div>
 
-    <button onclick="toggleTabula()" class="fixed bottom-6 left-4 md:left-8 z-50 bg-gradient-to-br from-red-900 to-[#3e2723] text-amber-500 p-4 rounded-full shadow-lg border-2 border-amber-500 hover:scale-110 hover:shadow-amber-500/50 transition-all group">
-        <i data-lucide="edit-3" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
-    </button>
+    <div class="fixed bottom-6 left-4 md:left-8 z-50 flex flex-col gap-4 hidden-stage" id="premium-tools">
+        
+        <button onclick="openCipherModal()" class="bg-gradient-to-br from-emerald-900 to-[#064e3b] text-emerald-400 p-4 rounded-full shadow-lg border-2 border-emerald-500 hover:scale-110 hover:shadow-emerald-500/50 transition-all group" title="Decodificador Alóbroge">
+            <i data-lucide="binary" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
+        </button>
+
+        <button onclick="openMapModal()" class="bg-gradient-to-br from-blue-900 to-[#1e3a8a] text-cyan-400 p-4 rounded-full shadow-lg border-2 border-cyan-500 hover:scale-110 hover:shadow-cyan-500/50 transition-all group" title="Mapa Táctico">
+            <i data-lucide="map" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
+        </button>
+
+        <button onclick="toggleTabula()" class="bg-gradient-to-br from-red-900 to-[#3e2723] text-amber-500 p-4 rounded-full shadow-lg border-2 border-amber-500 hover:scale-110 hover:shadow-amber-500/50 transition-all group" title="Tabula Cerata">
+            <i data-lucide="edit-3" class="w-6 h-6 group-hover:rotate-12 transition-transform"></i>
+        </button>
+
+    </div>
+
+    <div id="map-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[160] hidden flex items-center justify-center p-4 md:p-8 opacity-0 transition-opacity duration-300 hidden-stage">
+        <div class="bg-slate-900 border-2 border-cyan-600/50 rounded-2xl w-full max-w-5xl h-[80vh] flex flex-col shadow-[0_0_50px_rgba(8,145,178,0.3)] transform scale-95 transition-transform duration-300">
+            <div class="bg-slate-950/90 border-b border-slate-700 p-4 flex justify-between items-center z-10 rounded-t-2xl">
+                <h2 class="text-xl font-cinzel font-bold text-cyan-400 flex items-center gap-3">
+                    <i data-lucide="map-pin" class="w-6 h-6"></i> Despliegue Militar
+                </h2>
+                <button onclick="closeMapModal()" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-2 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="roman-map" class="flex-grow w-full rounded-b-xl z-0 bg-[#e5e5f7]"></div>
+        </div>
+    </div>
+
+    <div id="cipher-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[160] hidden flex items-center justify-center p-4 md:p-8 opacity-0 transition-opacity duration-300 hidden-stage">
+        <div class="bg-slate-900 border-2 border-emerald-600/50 rounded-2xl w-full max-w-2xl shadow-[0_0_50px_rgba(16,185,129,0.3)] transform scale-95 transition-transform duration-300 flex flex-col overflow-hidden">
+            <div class="bg-emerald-950/90 border-b border-emerald-900 p-4 flex justify-between items-center z-10">
+                <h2 class="text-xl font-cinzel font-bold text-emerald-400 flex items-center gap-3">
+                    <i data-lucide="scroll-text" class="w-6 h-6"></i> Carta Interceptada
+                </h2>
+                <button onclick="closeCipherModal()" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-2 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 text-center">
+                <p class="text-slate-300 mb-4 font-serif">Hemos interceptado este mensaje cifrado de los conjurados. Usa el desplazamiento césar (Cifra de Augusto) para leerlo.</p>
+                <div class="bg-black/50 p-4 rounded border border-slate-700 mb-6 font-mono text-xl text-red-400 tracking-widest break-words" id="encrypted-text">
+                    ...
+                </div>
+                <div class="flex items-center justify-center gap-4 mb-6">
+                    <label class="text-slate-400 font-cinzel">Desplazamiento:</label>
+                    <input type="range" id="cipher-slider" min="1" max="25" value="13" class="w-1/2" oninput="decodeText()">
+                    <span id="shift-value" class="text-emerald-400 font-bold text-xl">13</span>
+                </div>
+                <div class="bg-emerald-950/30 p-4 rounded border border-emerald-900 font-mono text-xl text-emerald-300 tracking-widest break-words min-h-[4rem]" id="decrypted-text">
+                    ...
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Umi mba'e ojejapóva (Variables de estado)
         let timerInterval;
         let timeRemaining = 45 * 60; 
-        
         let teamName = "";
         let mistakes = 0;
         const BASE_SCORE = 3000; 
 
-        // Kuatia Ñe'ẽ (Texto Latino - Primera Catilinaria)
         const latinText = "Quousque tandem abutere, Catilina, patientia nostra? Quamdiu etiam furor iste tuus nos eludet? Nihilne te nocturnum praesidium Palatii, nihil timor populi, nihil horum ora vultusque moverunt? Patere tua consilia non sentis? Constrictam teneri coniurationem tuam non vides? O tempora, o mores! Senatus haec intellegit, consul videt; hic tamen vivit. Vivit? Immo vero etiam in senatum venit.";
 
-        // Ñepyrũ Ñembotavy'ỹre (Inicialización Anti-Trampas)
         window.onload = function() {
             lucide.createIcons();
             
-            // Omoingéva kuatiañe'ẽ HTML-pe
             const container = document.getElementById('latin-container');
             container.innerHTML = latinText.split(/\s+/).map((word, i) => {
                 const cleanWord = word.replace(/[.,;:!?]/g, '');
@@ -422,7 +472,7 @@
             }).join(' ');
 
             checkGameState();
-            loadTabula(); // CARGAMOS LA TABULA AL INICIAR
+            loadTabula(); 
             
             setTimeout(() => sayCicero("¡Bienvenido, Senador! No hay tiempo que perder, la República está en peligro."), 2000);
         };
@@ -526,7 +576,7 @@
                 'populi': { enunciado: "populus, -i, m", es: { morph: "Sustantivo, Masculino, Singular", syntax: "Genitivo, Complemento del Nombre (Subjetivo)", def: "del pueblo", etym: "De origen etrusco"} },
                 'horum': { enunciado: "hic, haec, hoc", es: { morph: "Pronombre/Adjetivo Demostrativo, Masculino, Plural", syntax: "Genitivo, Complemento del Nombre", def: "de estos", exp: "Se refiere a los senadores presentes en la asamblea.", etym: "Del latín temprano"} },
                 'ora': { enunciado: "os, oris, n", es: { morph: "Sustantivo, Neutro, Plural", syntax: "Nominativo, Sujeto", def: "los rostros, las bocas", etym: "Del PIE *h₁oh₃s (boca)"} },
-                'vultusque': { enunciado: "vultus, -us, m + -que", es: { morph: "Sustantivo plural + conjunción enclítica copulativa", syntax: "Nominativo, Sujeto", def: "y las expresiones", etym: "Del PIE *wel- (ver)"} },
+                'vultusque': { enunciado: "vultus, -us, m + -que", es: { morph: "Sustantivo plural + conjunción enclítica copulativa", syntax: "Nominativo, Sujeto", def: "y las expressions", etym: "Del PIE *wel- (ver)"} },
                 'moverunt': { enunciado: "moveo, -ere, movi, motum", es: { morph: "Verbo, 3ª persona plural, Pretérito Perfecto Ind., Activo", syntax: "Núcleo del Predicado", def: "movieron, han conmovido", etym: "Del PIE *mew-"} },
                 'patere': { enunciado: "pateo, -ere", es: { morph: "Verbo, Infinitivo Presente Activo", syntax: "Núcleo del Predicado (de Oración de Infinitivo)", def: "estar descubiertos, ser patentes", exp: "Al depender del verbo de entendimiento 'sentis', forma una oración subordinada sustantiva de infinitivo, donde su sujeto ('consilia') va en Acusativo.", etym: "Del PIE *pet- (extenderse)"} },
                 'tua': { enunciado: "tuus, -a, -um", es: { morph: "Adjetivo Posesivo, Neutro, Plural", syntax: "Acusativo, Adyacente de 'consilia'", def: "tus", etym: "Del PIE *tew-"} },
@@ -630,6 +680,7 @@
             hide('introStage');
             show('gameHeader');
             show('gameStage');
+            show('premium-tools');
             
             document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
             
@@ -639,8 +690,18 @@
                 timeRemaining--;
                 document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
                 
+                // Efecto "Roma en Llamas" (menos de 5 minutos = 300 segundos)
+                if (timeRemaining === 300) {
+                    sayCicero("¡Roma está a punto de arder! ¡Apresuraos, senadores!", 6000);
+                }
+                if (timeRemaining <= 300 && timeRemaining > 0) {
+                    document.body.classList.add('danger-mode');
+                    document.getElementById('timerContainer').classList.add('animate-pulse', 'border-red-500');
+                }
+                
                 if (timeRemaining <= 0) {
                     clearInterval(timerInterval);
+                    document.body.classList.remove('danger-mode');
                     gameOver();
                 }
             }, 1000);
@@ -674,6 +735,7 @@
 
             hide('gameStage');
             hide('gameHeader');
+            hide('premium-tools');
             hide('introStage');
             show('defeatStage');
             sayCicero("¡Todo está perdido! ¡Roma cae bajo las llamas!");
@@ -700,6 +762,7 @@
 
             hide('gameStage');
             hide('gameHeader');
+            hide('premium-tools');
             show('victoryStage');
 
             const formUrl = 'https://formsubmit.co/ajax/alejandroruizgueto@hotmail.es';
@@ -914,6 +977,91 @@
         }
 
         // ==========================================
+        // MAPA TÁCTICO DE ITALIA
+        // ==========================================
+        let romanMap = null;
+
+        function openMapModal() {
+            const modal = document.getElementById('map-modal');
+            modal.classList.remove('hidden', 'hidden-stage');
+            
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                
+                if (!romanMap) {
+                    romanMap = L.map('roman-map').setView([42.5, 12.5], 6);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(romanMap);
+
+                    L.marker([41.8902, 12.4922]).addTo(romanMap)
+                        .bindPopup('<b class="font-cinzel text-red-700">ROMA</b><br>El Senado está reunido en el Templo de Júpiter Estator.').openPopup();
+                    
+                    L.marker([43.8080, 11.2927]).addTo(romanMap)
+                        .bindPopup('<b class="font-cinzel text-slate-800">FAESULAE (Fiesole)</b><br>Campamento militar del rebelde Manlio. Catilina planea huir hacia aquí.');
+                }
+                romanMap.invalidateSize();
+            }, 10);
+            sayCicero("Observa bien, senador. Las legiones rebeldes acechan en Etruria.");
+        }
+
+        function closeMapModal() {
+            const modal = document.getElementById('map-modal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden', 'hidden-stage'), 300);
+        }
+
+        // ==========================================
+        // DECODIFICADOR ALÓBROGE (Cifrado César)
+        // ==========================================
+        const SECRET_MESSAGE = "IGNIS URBEM"; 
+        
+        function openCipherModal() {
+            const modal = document.getElementById('cipher-modal');
+            modal.classList.remove('hidden', 'hidden-stage');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                decodeText(); 
+            }, 10);
+            sayCicero("Descifra las letras, senador. Encontrarás la prueba de su traición.");
+        }
+
+        function closeCipherModal() {
+            const modal = document.getElementById('cipher-modal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden', 'hidden-stage'), 300);
+        }
+
+        function decodeText() {
+            const shift = parseInt(document.getElementById('cipher-slider').value);
+            document.getElementById('shift-value').innerText = shift;
+            
+            let encrypted = "";
+            for(let i = 0; i < SECRET_MESSAGE.length; i++) {
+                let charCode = SECRET_MESSAGE.charCodeAt(i);
+                if(charCode >= 65 && charCode <= 90) { 
+                    encrypted += String.fromCharCode(((charCode - 65 + shift) % 26) + 65);
+                } else {
+                    encrypted += SECRET_MESSAGE[i];
+                }
+            }
+            
+            document.getElementById('encrypted-text').innerText = encrypted;
+            
+            if (shift === 3) {
+                document.getElementById('decrypted-text').innerText = SECRET_MESSAGE + " (¡Descifrado!)";
+                document.getElementById('decrypted-text').classList.add('text-amber-400', 'font-bold');
+            } else {
+                document.getElementById('decrypted-text').innerText = "Ininteligible...";
+                document.getElementById('decrypted-text').classList.remove('text-amber-400', 'font-bold');
+            }
+        }
+
+        // ==========================================
         // CICERÓN ARRASTRABLE (DRAG & DROP)
         // ==========================================
         const ciceroElement = document.getElementById('cicero-mentor');
@@ -945,11 +1093,9 @@
             let clientX = e.clientX || e.touches[0].clientX;
             let clientY = e.clientY || e.touches[0].clientY;
             
-            // Liberamos a Cicerón de su esquina fija
             ciceroElement.style.bottom = 'auto';
             ciceroElement.style.right = 'auto';
             
-            // Le damos su nueva posición
             ciceroElement.style.left = (clientX - startX) + 'px';
             ciceroElement.style.top = (clientY - startY) + 'px';
         }
