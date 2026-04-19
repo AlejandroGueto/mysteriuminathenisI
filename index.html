@@ -766,11 +766,66 @@
             modal.querySelector('div').classList.add('scale-95');
             setTimeout(() => { modal.classList.add('hidden', 'hidden-stage'); iframe.src = ""; }, 300);
         }
-function sayCicero(text, duration = 4000) {
+// ==========================================
+        // DICCIONARIO LOCAL (Optimizado)
+        // ==========================================
+        const customDict = {
+            'quousque': { enunciado: "quousque", es: { morph: "Adverbio interrogativo", syntax: "C. C. de Tiempo", def: "¿hasta cuándo?", etym: "De quo + usque"} },
+            'tandem': { enunciado: "tandem", es: { morph: "Adverbio", syntax: "Adverbio enfático", def: "de una vez, por fin", etym: "Del latín arcaico tam + dem"} },
+            'abutere': { enunciado: "abutor, -uti, abusus sum", es: { morph: "Verbo deponente, 2ª p. singular, Futuro Imp.", syntax: "Núcleo del Predicado", def: "abusarás", exp: "Significado activo pero forma pasiva. 'Abutor' rige ablativo.", etym: "De ab- + utor (usar)"} },
+            'catilina': { enunciado: "Catilina, -ae, m", es: { morph: "Sustantivo, Masculino, Singular", syntax: "Vocativo", def: "Catilina", exp: "De la 1ª declinación, pero designa a un varón.", etym: "Cognomen romano"} },
+            'patientia': { enunciado: "patientia, -ae, f", es: { morph: "Sustantivo, Femenino, Singular", syntax: "Ablativo de Régimen", def: "de la paciencia", exp: "Régimen obligatorio exigido por 'abutere'.", etym: "De patiens"} },
+            'nostra': { enunciado: "noster, nostra, nostrum", es: { morph: "Adjetivo Posesivo, Fem., Sg.", syntax: "Ablativo, Adyacente", def: "nuestra", etym: "Del PIE *nos-"} },
+            'quamdiu': { enunciado: "quamdiu", es: { morph: "Adverbio", syntax: "C. C. de Tiempo", def: "¿durante cuánto tiempo?", etym: "De quam + diu"} },
+            'etiam': { enunciado: "etiam", es: { morph: "Adverbio", syntax: "Adverbio enfático", def: "todavía, además", etym: "De et + iam"} },
+            'furor': { enunciado: "furor, -oris, m", es: { morph: "Sustantivo, Masc., Sg.", syntax: "Nominativo, Sujeto", def: "el furor, la locura", etym: "Del verbo furere"} },
+            'iste': { enunciado: "iste, ista, istud", es: { morph: "Adjetivo Demostrativo, Masc., Sg.", syntax: "Nominativo, Adyacente", def: "ese", exp: "Matiz despectivo.", etym: "Del latín is + te"} },
+            'tuus': { enunciado: "tuus, -a, -um", es: { morph: "Adjetivo Posesivo, Masc., Sg.", syntax: "Nominativo, Adyacente", def: "tu", etym: "Del PIE *tew-"} },
+            'nos': { enunciado: "nos, nostrum", es: { morph: "Pron. Personal, 1ª p. plural", syntax: "Acusativo, C. Directo", def: "a nosotros", etym: "Del PIE *nos-"} },
+            'eludet': { enunciado: "eludo, -ere", es: { morph: "Verbo, 3ª p. singular, Futuro Imp.", syntax: "Núcleo", def: "burlará, esquivará", etym: "De ex- + ludo"} },
+            'nihilne': { enunciado: "nihil (n) + -ne", es: { morph: "Pron. indefinido + partícula interrogativa", syntax: "Acusativo (Adverbializado)", def: "¿acaso nada...?", etym: "De ne- + hilum"} },
+            'te': { enunciado: "tu, tui", es: { morph: "Pron. Personal, 2ª p. sg.", syntax: "Acusativo, C. Directo", def: "a ti", etym: "Del PIE *tu"} },
+            'nocturnum': { enunciado: "nocturnus, -a, -um", es: { morph: "Adjetivo, Neutro, Sg.", syntax: "Nominativo, Adyacente", def: "nocturno", etym: "De nox, noctis"} },
+            'praesidium': { enunciado: "praesidium, -ii, n", es: { morph: "Sustantivo, Neutro, Sg.", syntax: "Nominativo, Sujeto", def: "la guardia, la guarnición", etym: "De praeses"} },
+            'palatii': { enunciado: "Palatium, -ii, n", es: { morph: "Sustantivo propio, Neutro, Sg.", syntax: "Genitivo, C. del Nombre", def: "del Palatino", etym: "De Pales"} },
+            'timor': { enunciado: "timor, -oris, m", es: { morph: "Sustantivo, Masc., Sg.", syntax: "Nominativo, Sujeto", def: "el temor, el miedo", etym: "Del verbo timere"} },
+            'populi': { enunciado: "populus, -i, m", es: { morph: "Sustantivo, Masc., Sg.", syntax: "Genitivo, C. del Nombre", def: "del pueblo", etym: "Origen etrusco"} },
+            'horum': { enunciado: "hic, haec, hoc", es: { morph: "Pron. Demostrativo, Masc., Plural", syntax: "Genitivo, C. del Nombre", def: "de estos", etym: "Del latín temprano"} },
+            'ora': { enunciado: "os, oris, n", es: { morph: "Sustantivo, Neutro, Plural", syntax: "Nominativo, Sujeto", def: "los rostros, las bocas", etym: "Del PIE *h₁oh₃s"} },
+            'vultusque': { enunciado: "vultus, -us, m + -que", es: { morph: "Sustantivo plural + conjunción enclítica", syntax: "Nominativo, Sujeto", def: "y las expresiones", etym: "Del PIE *wel-"} },
+            'moverunt': { enunciado: "moveo, -ere", es: { morph: "Verbo, 3ª p. plural, Pret. Perfecto Activo", syntax: "Núcleo", def: "movieron, han conmovido", etym: "Del PIE *mew-"} },
+            'patere': { enunciado: "pateo, -ere", es: { morph: "Verbo, Infinitivo Pres. Activo", syntax: "Núcleo (Oración de Infinitivo)", def: "estar descubiertos", exp: "Forma subordinada sustantiva dependiente de 'sentis'.", etym: "Del PIE *pet-"} },
+            'tua': { enunciado: "tuus, -a, -um", es: { morph: "Adjetivo Posesivo, Neutro, Plural", syntax: "Acusativo, Adyacente", def: "tus", etym: "Del PIE *tew-"} },
+            'consilia': { enunciado: "consilium, -ii, n", es: { morph: "Sustantivo, Neutro, Plural", syntax: "Acusativo, Sujeto", def: "planes, intenciones", etym: "De consulere"} },
+            'non': { enunciado: "non", es: { morph: "Adverbio", syntax: "C.C. Negación", def: "no", etym: "De ne + oenum"} },
+            'sentis': { enunciado: "sentio, -ire", es: { morph: "Verbo, 2ª p. sg., Pres. Activo", syntax: "Núcleo", def: "sientes, te das cuenta", etym: "Del PIE *sent-"} },
+            'constrictam': { enunciado: "constringo, -ere", es: { morph: "Participio Perfecto Pasivo, Fem., Sg.", syntax: "Atributo/Predicativo", def: "atada, paralizada", etym: "De con- + stringo"} },
+            'teneri': { enunciado: "teneo, -ere", es: { morph: "Verbo, Infinitivo Pres. Pasivo", syntax: "Núcleo (Oración de Infinitivo)", def: "ser retenida", exp: "Infinitivo pasivo dependiente de 'vides'.", etym: "Del PIE *ten-"} },
+            'coniurationem': { enunciado: "coniuratio, -onis, f", es: { morph: "Sustantivo, Fem., Sg.", syntax: "Acusativo, Sujeto", def: "la conjuración", etym: "De coniurare"} },
+            'tuam': { enunciado: "tuus, -a, -um", es: { morph: "Adjetivo Posesivo, Fem., Sg.", syntax: "Acusativo, Adyacente", def: "tu", etym: "Del PIE *tew-"} },
+            'vides': { enunciado: "video, -ere", es: { morph: "Verbo, 2ª p. sg., Pres. Activo", syntax: "Núcleo", def: "ves", etym: "Del PIE *weyd-"} },
+            'o': { enunciado: "o", es: { morph: "Interjección", syntax: "Interjección", def: "¡oh!", etym: "Onomatopeya"} },
+            'tempora': { enunciado: "tempus, -oris, n", es: { morph: "Sustantivo, Neutro, Plural", syntax: "Acusativo de Exclamación", def: "tiempos", exp: "Pertenece a la 3ª declinación.", etym: "Del PIE *tem-"} },
+            'mores': { enunciado: "mos, moris, m", es: { morph: "Sustantivo, Masc., Plural", syntax: "Acusativo de Exclamación", def: "costumbres", etym: "Origen incierto"} },
+            'senatus': { enunciado: "senatus, -us, m", es: { morph: "Sustantivo, Masc., Sg.", syntax: "Nominativo, Sujeto", def: "el senado", etym: "De senex"} },
+            'haec': { enunciado: "hic, haec, hoc", es: { morph: "Pron. Demostrativo, Neutro, Plural", syntax: "Acusativo, C. Directo", def: "estas cosas", etym: "Latín arcaico"} },
+            'intellegit': { enunciado: "intellego, -ere", es: { morph: "Verbo, 3ª p. sg., Pres. Activo", syntax: "Núcleo", def: "comprende", etym: "De inter- + lego"} },
+            'consul': { enunciado: "consul, -is, m", es: { morph: "Sustantivo, Masc., Sg.", syntax: "Nominativo, Sujeto", def: "el cónsul", etym: "De consulere"} },
+            'videt': { enunciado: "video, -ere", es: { morph: "Verbo, 3ª p. sg., Pres. Activo", syntax: "Núcleo", def: "lo ve", etym: "Del PIE *weyd-"} },
+            'hic': { enunciado: "hic, haec, hoc", es: { morph: "Pron. Demostrativo, Masc., Sg.", syntax: "Nominativo, Sujeto", def: "este (Catilina)", etym: "Latín arcaico"} },
+            'tamen': { enunciado: "tamen", es: { morph: "Conjunción", syntax: "Adversativa", def: "sin embargo", etym: "Del PIE *tam"} },
+            'vivit': { enunciado: "vivo, -ere", es: { morph: "Verbo, 3ª p. sg., Pres. Activo", syntax: "Núcleo", def: "vive", etym: "Del PIE *gʷeyh₃-"} },
+            'immo': { enunciado: "immo", es: { morph: "Adverbio", syntax: "Adverbio correctivo", def: "es más", etym: "Origen incierto"} },
+            'vero': { enunciado: "verus, -a, -um", es: { morph: "Adverbio", syntax: "Adverbio", def: "en verdad", etym: "Del PIE *weh₁-"} },
+            'in': { enunciado: "in", es: { morph: "Preposición", syntax: "Preposición (Acusativo)", def: "al, hacia", etym: "Del PIE *en"} },
+            'senatum': { enunciado: "senatus, -us, m", es: { morph: "Sustantivo, Masc., Sg.", syntax: "Acusativo, C.C. Lugar", def: "al senado", etym: "De senex"} },
+            'venit': { enunciado: "venio, -ire", es: { morph: "Verbo, 3ª p. sg., Pres. Activo", syntax: "Núcleo", def: "viene", etym: "Del PIE *gʷem-"} }
+        };
+
+        function sayCicero(text, duration = 4000) {
             const bubble = document.getElementById('cicero-bubble');
             const ciceroText = document.getElementById('cicero-text');
             if(!bubble || !ciceroText) return;
-            
             ciceroText.innerText = text;
             bubble.classList.remove('opacity-0', 'translate-y-4');
             setTimeout(() => { bubble.classList.add('opacity-0', 'translate-y-4'); }, duration);
@@ -802,7 +857,6 @@ function sayCicero(text, duration = 4000) {
             document.getElementById('map-modal').classList.remove('hidden', 'hidden-stage');
             setTimeout(() => {
                 document.getElementById('map-modal').classList.remove('opacity-0');
-                document.getElementById('map-modal').querySelector('div').classList.remove('scale-95');
                 if (!romanMap) {
                     romanMap = L.map('roman-map').setView([42.2, 12.5], 6);
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(romanMap);
@@ -832,6 +886,7 @@ function sayCicero(text, duration = 4000) {
 
         function decodeText() {
             const shift = parseInt(document.getElementById('cipher-slider').value);
+            document.getElementById('shift-value').innerText = shift;
             const msg = "IGNIS URBEM";
             let enc = "";
             for(let i=0; i<msg.length; i++) {
