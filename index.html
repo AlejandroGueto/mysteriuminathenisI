@@ -151,6 +151,16 @@
                     <p class="mb-2 font-bold flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> Haz clic en cualquier palabra para consultar el Códice.</p>
                 </div>
             </div>
+
+            <div class="glass-panel p-8 rounded-2xl relative overflow-hidden">
+                <h3 class="text-xl text-amber-500 mb-4 flex items-center gap-2 font-cinzel">
+                    <i data-lucide="brain-circuit" class="w-5 h-5"></i> Reto Magistral
+                </h3>
+                <p class="text-sm text-slate-300 mb-4">¿Necesitáis afilar la mente antes de juzgar a Catilina? Resolved estos enigmas.</p>
+                <button onclick="generateManualExercise()" class="w-full py-3 bg-red-900 hover:bg-red-800 text-white rounded font-cinzel text-sm uppercase tracking-widest transition-all shadow">Generar Reto</button>
+                <div id="exercise-area" class="hidden mt-6 pt-6 border-t border-red-900/50"></div>
+            </div>
+
         </div>
 
         <div class="lg:col-span-3 flex flex-col space-y-6">
@@ -389,6 +399,84 @@
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
+        // ==========================================
+        // BASE DE DATOS: RETOS MAGISTRALES
+        // ==========================================
+        // Aquí puedes añadir todos los retos que quieras copiando el mismo formato.
+        const MANUAL_CHALLENGES = [
+            {
+                pregunta: "¿Qué figura retórica utiliza Cicerón al inicio con 'Quousque tandem... Quamdiu etiam... Nihilne te...'?",
+                opciones: ["Anáfora", "Quiasmo", "Hipérbaton", "Oxímoron"],
+                correcta: 0, // El 0 es la primera opción, el 1 la segunda, etc.
+                explicacion: "Cicerón repite estructuras al principio de las frases para martillear a Catilina con preguntas retóricas directas."
+            },
+            {
+                pregunta: "En la famosa frase 'O tempora, o mores!', ¿en qué caso gramatical se encuentran las palabras 'tempora' y 'mores'?",
+                opciones: ["Nominativo sujeto", "Acusativo exclamativo", "Vocativo directo", "Ablativo absoluto"],
+                correcta: 1,
+                explicacion: "En latín clásico, las exclamaciones de asombro o indignación se construyen frecuentemente en Acusativo (Acusativo de Exclamación)."
+            },
+            {
+                pregunta: "El verbo 'abutere' (abusarás) está en futuro imperfecto. ¿A qué extraña conjugación pertenece su terminación '-re'?",
+                opciones: ["Es un infinitivo pasivo irregular.", "Es la desinencia alternativa para la 2ª persona singular pasiva/deponente en lugar de '-ris'.", "Es un imperativo de presente activo.", "Es un verbo defectivo que carece de flexión normal."],
+                correcta: 1,
+                explicacion: "Los verbos deponentes como abutor tienen significado activo pero forma pasiva. En la 2ª pers. sg. se usa mucho la terminación '-re' (abute-re) en vez de '-ris' (abute-ris)."
+            },
+            {
+                pregunta: "¿A qué declinación pertenece el sustantivo 'consilia' (planes/intenciones)?",
+                opciones: ["A la 1ª declinación (femenino singular).", "A la 3ª declinación (neutro plural).", "A la 2ª declinación (neutro plural).", "A la 4ª declinación (acusativo singular)."],
+                correcta: 2,
+                explicacion: "Su enunciado es 'consilium, -ii'. Es un sustantivo neutro de la segunda declinación, y al acabar en '-a' sabemos que está en Nominativo, Vocativo o Acusativo plural."
+            }
+        ];
+        function generateManualExercise() {
+            const area = document.getElementById('exercise-area'); 
+            area.classList.remove('hidden'); 
+            
+            // Elegir un reto aleatorio de nuestra base de datos
+            const randomIndex = Math.floor(Math.random() * MANUAL_CHALLENGES.length);
+            const ex = MANUAL_CHALLENGES[randomIndex];
+            
+            // Construir el código HTML para los botones de las opciones
+            let opcionesHTML = ex.opciones.map((o, i) => {
+                // Escapamos las comillas simples de la explicación para que no rompa el código
+                const expSegura = ex.explicacion.replace(/'/g, "\\'");
+                return `<button onclick="checkManualAns(${i}, ${ex.correcta}, '${expSegura}', this)" class="block w-full text-left p-3 bg-black/50 rounded border border-red-900/50 transition-all hover:bg-red-900/40 text-slate-300 text-sm shadow-sm mb-2">${o}</button>`;
+            }).join('');
+
+            // Inyectarlo en la pantalla
+            area.innerHTML = `
+                <h4 class="font-cinzel text-[11px] text-slate-400 mb-4 uppercase border-b border-slate-700 pb-2 tracking-widest">Examen Magistral</h4>
+                <p class="mb-6 font-serif text-lg text-slate-200 leading-snug">${ex.pregunta}</p>
+                <div class="space-y-3">
+                    ${opcionesHTML}
+                </div>
+                <div id="fb" class="mt-4 text-sm italic font-serif text-slate-400"></div>`;
+        }
+
+        function checkManualAns(seleccionada, correcta, explicacion, botonElement) { 
+            const fb = document.getElementById('fb'); 
+            
+            // Desactivamos todos los botones para que no sigan haciendo clics trampa
+            const todosLosBotones = botonElement.parentElement.querySelectorAll('button');
+            todosLosBotones.forEach(b => {
+                b.disabled = true;
+                b.classList.remove('hover:bg-red-900/40');
+            });
+
+            // Comprobamos si acertó
+            if (seleccionada === correcta) {
+                botonElement.classList.replace('bg-black/50', 'bg-emerald-900/80');
+                botonElement.classList.replace('border-red-900/50', 'border-emerald-500');
+                fb.innerHTML = `✅ <span class="text-emerald-400 font-bold uppercase font-cinzel">¡Sapiens!</span><br><br>${explicacion}`;
+                sayCicero("¡Bien razonado! El Senado necesita mentes lúcidas como la tuya.");
+            } else {
+                botonElement.classList.replace('bg-black/50', 'bg-red-900/80');
+                botonElement.classList.replace('border-red-900/50', 'border-red-500');
+                fb.innerHTML = `❌ <span class="text-red-400 font-bold uppercase font-cinzel">Erratum.</span><br><br>${explicacion}`;
+                sayCicero("Te equivocas, senador. Repasa tu gramática o Catilina se saldrá con la suya.");
+            }
+        }
         // ==========================================
         // DICCIONARIO LOCAL (Sin API)
         // ==========================================
