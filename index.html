@@ -34,6 +34,8 @@
         .hidden-stage {
             display: none !important; 
         }
+        #victoryStage, #defeatStage { display: none !important; }
+        #victoryStage.flex, #defeatStage.flex { display: flex !important; }
 
         /* --- ESTILOS PREMIUM --- */
         .glass-panel {
@@ -764,8 +766,7 @@
             modal.querySelector('div').classList.add('scale-95');
             setTimeout(() => { modal.classList.add('hidden', 'hidden-stage'); iframe.src = ""; }, 300);
         }
-
-        function sayCicero(text, duration = 4000) {
+function sayCicero(text, duration = 4000) {
             const bubble = document.getElementById('cicero-bubble');
             const ciceroText = document.getElementById('cicero-text');
             if(!bubble || !ciceroText) return;
@@ -774,249 +775,112 @@
             bubble.classList.remove('opacity-0', 'translate-y-4');
             setTimeout(() => { bubble.classList.add('opacity-0', 'translate-y-4'); }, duration);
         }
-// ==========================================
-        // SACRIFICIO DIVINO (Pista por Tiempo)
-        // ==========================================
-        function divineSacrifice() {
-            if (timeRemaining <= 180) {
-                sayCicero("¡Es demasiado tarde para ofrendas! El tiempo casi se ha agotado.");
-                return;
-            }
-            
-            // Restamos 3 minutos (180 segundos) y actualizamos el reloj al instante
-            timeRemaining -= 180;
-            document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
-            
-            // Efecto visual de penalización (destello morado)
-            document.body.style.boxShadow = "inset 0 0 100px rgba(168, 85, 247, 0.5)";
-            setTimeout(() => { document.body.style.boxShadow = "none"; }, 1000);
-            
-            // Cicerón da una pista vital al azar
-            const pistasDivinas = [
-                "Los dioses me susurran: 'abutere' rige ablativo... busca 'patientia'.",
-                "Visión divina: la palabra 'tempora' no es de la 1ª declinación, senador. Es un falso amigo neutro de la 3ª.",
-                "Oráculo: 'Quousque tandem' es una pregunta... ¿No ves los signos?",
-                "El mensajero divino indica que 'vides' pertenece a la segunda conjugación."
-            ];
-            
-            const pistaElegida = pistasDivinas[Math.floor(Math.random() * pistasDivinas.length)];
-            sayCicero("Has entregado 3 minutos al destino. Escucha: " + pistaElegida, 6000);
-        }
-        // ==========================================
-        // SACRIFICIO DIVINO (Pista por Tiempo)
-        // ==========================================
-        function divineSacrifice() {
-            if (timeRemaining <= 180) {
-                sayCicero("¡Es demasiado tarde para ofrendas! El tiempo casi se ha agotado.");
-                return;
-            }
-            
-            timeRemaining -= 180;
-            document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
-            
-            document.body.style.boxShadow = "inset 0 0 100px rgba(168, 85, 247, 0.5)";
-            setTimeout(() => { document.body.style.boxShadow = "none"; }, 1000);
-            
-            const pistasDivinas = [
-                "Los dioses me susurran: 'abutere' rige ablativo... busca 'patientia'.",
-                "Visión divina: la palabra 'tempora' es un neutro de la 3ª declinación.",
-                "Oráculo: 'Quousque tandem' es una pregunta... ¿No ves los signos?",
-                "El mensajero divino indica que 'vides' pertenece a la segunda conjugación."
-            ];
-            
-            const pistaElegida = pistasDivinas[Math.floor(Math.random() * pistasDivinas.length)];
-            sayCicero("Has sacrificado 3 minutos. Escucha: " + pistaElegida, 6000);
-        }
-        // ==========================================
-        // MAPA TÁCTICO DE ITALIA
-        // ==========================================
-        let romanMap = null;
 
+        // ==========================================
+        // FUNCIONES PREMIUM (SACRIFICIO, MAPA, CIFRADO)
+        // ==========================================
+        function divineSacrifice() {
+            if (timeRemaining <= 180) {
+                sayCicero("¡Es demasiado tarde para ofrendas! El tiempo casi se ha agotado.");
+                return;
+            }
+            timeRemaining -= 180;
+            document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
+            document.body.style.boxShadow = "inset 0 0 100px rgba(168, 85, 247, 0.5)";
+            setTimeout(() => { document.body.style.boxShadow = "none"; }, 1000);
+            const pistas = [
+                "Los dioses susurran: 'abutere' rige ablativo... busca 'patientia'.",
+                "Visión divina: 'tempora' es un neutro de la 3ª declinación.",
+                "Oráculo: 'Quousque tandem' es una pregunta.",
+                "El mensajero indica que 'vides' es de la segunda conjugación."
+            ];
+            sayCicero("Ofrenda aceptada. Escucha: " + pistas[Math.floor(Math.random() * pistas.length)], 6000);
+        }
+
+        let romanMap = null;
         function openMapModal() {
-            const modal = document.getElementById('map-modal');
-            modal.classList.remove('hidden', 'hidden-stage');
-            
+            document.getElementById('map-modal').classList.remove('hidden', 'hidden-stage');
             setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('div').classList.remove('scale-95');
-                
+                document.getElementById('map-modal').classList.remove('opacity-0');
+                document.getElementById('map-modal').querySelector('div').classList.remove('scale-95');
                 if (!romanMap) {
                     romanMap = L.map('roman-map').setView([42.2, 12.5], 6);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                        attribution: '&copy; OpenStreetMap'
-                    }).addTo(romanMap);
-
-                    L.marker([41.8902, 12.4922]).addTo(romanMap).bindPopup('<b class="font-cinzel text-red-700">ROMA (TEMPLO DE JÚPITER)</b><br>Sede de la reunión del Senado donde Cicerón denunció a Catilina.').openPopup();
-                    L.marker([41.9351, 12.4727]).addTo(romanMap).bindPopup('<b class="font-cinzel text-emerald-700">PUENTE MILVIO</b><br>Aquí fueron capturados los embajadores Alóbroges con las cartas.');
-                    L.marker([43.8080, 11.2927]).addTo(romanMap).bindPopup('<b class="font-cinzel text-slate-800">FAESULAE (Fiesole)</b><br>Campamento militar del general Manlio.');
-                    L.marker([43.9318, 10.9177]).addTo(romanMap).bindPopup('<b class="font-cinzel text-orange-700">PISTORIA (Pistoia)</b><br>Lugar de la batalla final (62 a.C.). Catilina murió luchando.');
-                    L.marker([41.1086, 14.2120]).addTo(romanMap).bindPopup('<b class="font-cinzel text-blue-700">CAPUA</b><br>Ciudad clave donde los conjurados intentaron sublevar gladiadores.');
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(romanMap);
+                    L.marker([41.89, 12.49]).addTo(romanMap).bindPopup('ROMA: Templo de Júpiter.').openPopup();
+                    L.marker([41.93, 12.47]).addTo(romanMap).bindPopup('PUENTE MILVIO: Cartas interceptadas.');
+                    L.marker([43.80, 11.29]).addTo(romanMap).bindPopup('FAESULAE: Campamento rebelde.');
+                    L.marker([43.93, 10.91]).addTo(romanMap).bindPopup('PISTORIA: Batalla final.');
                 }
                 romanMap.invalidateSize();
             }, 10);
-            sayCicero("Observa la red de traición, senador.");
         }
 
         function closeMapModal() {
-            const modal = document.getElementById('map-modal');
-            modal.classList.add('opacity-0');
-            modal.querySelector('div').classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden', 'hidden-stage'), 300);
+            document.getElementById('map-modal').classList.add('opacity-0');
+            setTimeout(() => document.getElementById('map-modal').classList.add('hidden', 'hidden-stage'), 300);
         }
 
-        // ==========================================
-        // DECODIFICADOR ALÓBROGE (Cifrado César)
-        // ==========================================
-        const SECRET_MESSAGE = "IGNIS URBEM"; 
-        
         function openCipherModal() {
-            const modal = document.getElementById('cipher-modal');
-            modal.classList.remove('hidden', 'hidden-stage');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('div').classList.remove('scale-95');
-                decodeText(); 
-            }, 10);
-            sayCicero("Descifra las letras, senador. Encontrarás la prueba de su traición.");
+            document.getElementById('cipher-modal').classList.remove('hidden', 'hidden-stage');
+            setTimeout(() => { document.getElementById('cipher-modal').classList.remove('opacity-0'); decodeText(); }, 10);
         }
 
         function closeCipherModal() {
-            const modal = document.getElementById('cipher-modal');
-            modal.classList.add('opacity-0');
-            modal.querySelector('div').classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden', 'hidden-stage'), 300);
+            document.getElementById('cipher-modal').classList.add('opacity-0');
+            setTimeout(() => document.getElementById('cipher-modal').classList.add('hidden', 'hidden-stage'), 300);
         }
 
         function decodeText() {
             const shift = parseInt(document.getElementById('cipher-slider').value);
-            document.getElementById('shift-value').innerText = shift;
-            
-            let encrypted = "";
-            for(let i = 0; i < SECRET_MESSAGE.length; i++) {
-                let charCode = SECRET_MESSAGE.charCodeAt(i);
-                if(charCode >= 65 && charCode <= 90) { 
-                    encrypted += String.fromCharCode(((charCode - 65 + shift) % 26) + 65);
-                } else {
-                    encrypted += SECRET_MESSAGE[i];
-                }
+            const msg = "IGNIS URBEM";
+            let enc = "";
+            for(let i=0; i<msg.length; i++) {
+                let code = msg.charCodeAt(i);
+                if(code >= 65 && code <= 90) enc += String.fromCharCode(((code - 65 + shift) % 26) + 65);
+                else enc += msg[i];
             }
-            
-            document.getElementById('encrypted-text').innerText = encrypted;
-            
-            if (shift === 3) {
-                document.getElementById('decrypted-text').innerText = SECRET_MESSAGE + " (¡Descifrado!)";
-                document.getElementById('decrypted-text').classList.add('text-amber-400', 'font-bold');
-            } else {
-                document.getElementById('decrypted-text').innerText = "Ininteligible...";
-                document.getElementById('decrypted-text').classList.remove('text-amber-400', 'font-bold');
-            }
+            document.getElementById('encrypted-text').innerText = enc;
+            document.getElementById('decrypted-text').innerText = (shift === 3) ? msg + " (¡DESCIFRADO!)" : "Buscando clave...";
         }
 
-        // ==========================================
-        // CICERÓN ARRASTRABLE (DRAG & DROP)
-        // ==========================================
+        // --- ARRASTRE DE CICERÓN ---
         const ciceroElement = document.getElementById('cicero-mentor');
         let isDragging = false, startX, startY;
-
-        if (ciceroElement) {
-            ciceroElement.addEventListener('mousedown', startDrag);
-            ciceroElement.addEventListener('touchstart', startDrag, {passive: true});
+        if(ciceroElement) {
+            ciceroElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX - ciceroElement.getBoundingClientRect().left;
+                startY = e.clientY - ciceroElement.getBoundingClientRect().top;
+                ciceroElement.style.transition = 'none';
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                ciceroElement.style.bottom = 'auto'; ciceroElement.style.right = 'auto';
+                ciceroElement.style.left = (e.clientX - startX) + 'px';
+                ciceroElement.style.top = (e.clientY - startY) + 'px';
+            });
+            document.addEventListener('mouseup', () => { isDragging = false; ciceroElement.style.transition = 'all 0.5s ease'; });
         }
 
-        function startDrag(e) {
-            isDragging = true;
-            let clientX = e.clientX || e.touches[0].clientX;
-            let clientY = e.clientY || e.touches[0].clientY;
-            let rect = ciceroElement.getBoundingClientRect();
-            
-            startX = clientX - rect.left;
-            startY = clientY - rect.top;
-            
-            ciceroElement.style.cursor = 'grabbing';
-            ciceroElement.style.transition = 'none'; 
-        }
-
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('touchmove', drag, {passive: true});
-
-        function drag(e) {
-            if (!isDragging) return;
-            let clientX = e.clientX || e.touches[0].clientX;
-            let clientY = e.clientY || e.touches[0].clientY;
-            
-            ciceroElement.style.bottom = 'auto';
-            ciceroElement.style.right = 'auto';
-            
-            ciceroElement.style.left = (clientX - startX) + 'px';
-            ciceroElement.style.top = (clientY - startY) + 'px';
-        }
-
-        document.addEventListener('mouseup', stopDrag);
-        document.addEventListener('touchend', stopDrag);
-
-        function stopDrag() {
-            if (!isDragging) return;
-            isDragging = false;
-            ciceroElement.style.cursor = 'pointer';
-            ciceroElement.style.transition = 'all 0.5s ease'; 
-        }
-
-        // ==========================================
-        // MOTOR DE CENIZAS Y CHISPAS
-        // ==========================================
+        // --- MOTOR DE CENIZAS ---
         const canvas = document.getElementById('ash-particles');
         const ctx = canvas ? canvas.getContext('2d') : null;
         let particles = [];
-
         function initAshes() {
             if(!canvas) return;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            for(let i = 0; i < 60; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 2.5 + 0.5,
-                    speedY: Math.random() * 1 + 0.5,
-                    speedX: (Math.random() - 0.5) * 1,
-                    opacity: Math.random(),
-                    isSpark: Math.random() > 0.8 // Un 20% son chispas naranjas, el resto ceniza gris
-                });
-            }
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            for(let i=0; i<50; i++) particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*2, sp:Math.random()*1+0.5});
             animateAshes();
         }
-
         function animateAshes() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0,0,canvas.width, canvas.height);
             particles.forEach(p => {
-                p.y += p.speedY;
-                p.x += p.speedX;
-                
-                // Si la ceniza cae por debajo de la pantalla, vuelve arriba
-                if (p.y > canvas.height) {
-                    p.y = 0;
-                    p.x = Math.random() * canvas.width;
-                }
-
-                ctx.fillStyle = p.isSpark ? `rgba(245, 158, 11, ${p.opacity})` : `rgba(156, 163, 175, ${p.opacity * 0.6})`;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Efecto de parpadeo para las chispas
-                if(p.isSpark) p.opacity += (Math.random() - 0.5) * 0.1;
+                p.y += p.sp; if(p.y > canvas.height) p.y = 0;
+                ctx.fillStyle = "rgba(255,255,255,0.3)"; ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
             });
             requestAnimationFrame(animateAshes);
         }
-
-        // Reajustar el tamaño si cambian la ventana
-        window.addEventListener('resize', () => {
-            if(canvas) {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-        });
-
+        initAshes();
     </script>
 </body>
 </html>
